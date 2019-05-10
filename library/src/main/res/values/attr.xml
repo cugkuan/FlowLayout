@@ -13,6 +13,9 @@
         <!--竖着的间距-->
         <attr name="kf_verticalSpacing" format="dimension|reference"></attr>
 
+        <!--是否自动调整其宽度-->
+        <attr name="kf_adjust" format="boolean|reference"></attr>
+
 
 
     </declare-styleable>

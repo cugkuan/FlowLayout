@@ -41,6 +41,12 @@ public class KFlowLayout extends ViewGroup {
     private List<Node> mNodes = new LinkedList<>();
 
 
+    /**
+     * 自动调整
+     */
+    private boolean mAutoAdjust = true;
+
+
     public KFlowLayout(Context context) {
         super(context, null);
     }
@@ -65,6 +71,7 @@ public class KFlowLayout extends ViewGroup {
         if (mLineMax < 2) {
             mLineMax = 2;
         }
+        mAutoAdjust = array.getBoolean(R.styleable.KFlowLayout_kf_adjust, true);
     }
 
     private DataSetObserver mDataSetObserver = new DataSetObserver() {
@@ -91,6 +98,10 @@ public class KFlowLayout extends ViewGroup {
             super.onInvalidated();
         }
     };
+
+    public void setAutoAdjust(boolean autoAdjust) {
+        mAutoAdjust = autoAdjust;
+    }
 
     public void setAdapter(KFAdapter adapter) {
         mAdapter = adapter;
@@ -165,21 +176,27 @@ public class KFlowLayout extends ViewGroup {
         if (nodes == null || nodes.isEmpty()) {
             return 0;
         }
-        int usedWidth = widthSize - getPaddingLeft() - getPaddingRight() - (nodes.size() - 1) * mHorizontalSpacing;
-        int[] space = new int[nodes.size()];
-        for (int i = 0; i < space.length; i++) {
-            int vWidth = nodes.get(i).getView().getMeasuredWidth();
-            usedWidth = usedWidth - vWidth;
-            space[i] = vWidth;
-        }
-        int[] result = getAllocation(space, usedWidth);
         int height = 0;
-        for (int i = 0; i < nodes.size(); i++) {
-            View view = nodes.get(i).getView();
-            int widthS = MeasureSpec.makeMeasureSpec(result[i], MeasureSpec.EXACTLY);
-            LayoutParams lp = view.getLayoutParams();
-            view.measure(widthS, getChildMeasureSpec(heightSpace, 0, lp.height));
-            height = Math.max(height, view.getMeasuredHeight());
+        if (!mAutoAdjust) {
+            for (Node node : nodes) {
+                height = Math.max(height, node.getView().getMeasuredHeight());
+            }
+        } else {
+            int usedWidth = widthSize - getPaddingLeft() - getPaddingRight() - (nodes.size() - 1) * mHorizontalSpacing;
+            int[] space = new int[nodes.size()];
+            for (int i = 0; i < space.length; i++) {
+                int vWidth = nodes.get(i).getView().getMeasuredWidth();
+                usedWidth = usedWidth - vWidth;
+                space[i] = vWidth;
+            }
+            int[] result = getAllocation(space, usedWidth);
+            for (int i = 0; i < nodes.size(); i++) {
+                View view = nodes.get(i).getView();
+                int widthS = MeasureSpec.makeMeasureSpec(result[i], MeasureSpec.EXACTLY);
+                LayoutParams lp = view.getLayoutParams();
+                view.measure(widthS, getChildMeasureSpec(heightSpace, 0, lp.height));
+                height = Math.max(height, view.getMeasuredHeight());
+            }
         }
         return height;
     }
@@ -340,6 +357,7 @@ public class KFlowLayout extends ViewGroup {
         public void notifyDataSetChanged() {
             mDataSetObservable.notifyChanged();
         }
+
         /**
          * Register an observer that is called when changes happen to the data used by this adapter.
          *
