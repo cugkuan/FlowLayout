@@ -291,8 +291,8 @@ public class KFlowLayout extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        l = l + getPaddingLeft();
-        t = t + getPaddingTop();
+        l = getPaddingLeft();
+        t = getPaddingTop();
         int line = 0;
         int rowHeight = 0;
         for (int i = 0; i < mNodes.size(); i++) {

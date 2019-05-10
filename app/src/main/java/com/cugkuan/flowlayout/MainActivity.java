@@ -49,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
 
             TextView textView =  (TextView) LayoutInflater.from(context).inflate(R.layout.textview,null);
 
+
             textView.setText(strings[position]);
 
             return textView;
