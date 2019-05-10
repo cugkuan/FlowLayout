@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="KFlowLayout">
+
+        <!--一行的最大个数-->
+        <attr name="kf_line_max_num" format="integer|reference">
+        </attr>
+
+        <!--水平的间距-->
+        <attr name="kf_horizontalSpacing" format="dimension|reference"></attr>
+
+        <!--竖着的间距-->
+        <attr name="kf_verticalSpacing" format="dimension|reference"></attr>
+
+
+
+    </declare-styleable>
+</resources>
