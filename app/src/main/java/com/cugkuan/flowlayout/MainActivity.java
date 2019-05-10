@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -28,8 +29,6 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-
     }
 
     class ViewPager  extends KFlowLayout.KFAdapter{
@@ -38,9 +37,9 @@ public class MainActivity extends AppCompatActivity {
         private String[] strings = new String[6];
         {
             strings[0] = "你好吗";
-            strings[1] = "你好吗好的哈较好的";
-            strings[2] = "dddgghh";
-            strings[3] = "测试的的";
+            strings[1] = "你好吗";
+            strings[2] = "你好吗";
+            strings[3] = "你好吗";
             strings[4] = "你好不好啊，好不好啊好不好啊";
             strings[5] = "你不哦啊吗，巴哈卡机的和交互打工行大动干戈交换机会加大";
         }

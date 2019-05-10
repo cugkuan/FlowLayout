@@ -67,7 +67,7 @@ public class KFlowLayout extends ViewGroup {
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.KFlowLayout);
         mHorizontalSpacing = array.getDimensionPixelSize(R.styleable.KFlowLayout_kf_horizontalSpacing, 10);
         mVerticalSpacing = array.getDimensionPixelOffset(R.styleable.KFlowLayout_kf_verticalSpacing, 10);
-        mLineMax = array.getDimensionPixelOffset(R.styleable.KFlowLayout_kf_line_max_num, 3);
+        mLineMax = array.getInteger(R.styleable.KFlowLayout_kf_line_max_num, 3);
         if (mLineMax < 2) {
             mLineMax = 2;
         }
@@ -117,9 +117,6 @@ public class KFlowLayout extends ViewGroup {
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        if (mNodes.isEmpty()) {
-            return;
-        }
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int row = 0;
         int line = 0;
@@ -135,7 +132,7 @@ public class KFlowLayout extends ViewGroup {
             View view = node.getView();
             usedWidth = usedWidth + view.getMeasuredWidth() + mHorizontalSpacing;
             //该换行了
-            if (row > mLineMax || (usedWidth > widthSize && row > 0)) {
+            if (row >= mLineMax || (usedWidth > widthSize && row > 0)) {
                 row = 0;
                 line++;
                 usedWidth = getPaddingLeft() + getPaddingRight() + view.getMeasuredWidth() + mHorizontalSpacing;
@@ -152,7 +149,7 @@ public class KFlowLayout extends ViewGroup {
          * 别忘了最后一行元素的处理
          */
         height = height + dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
-        int resultHeight = height + mVerticalSpacing * (line - 1) + getPaddingTop() + getPaddingBottom();
+        int resultHeight = height + getPaddingTop() + getPaddingBottom() + mVerticalSpacing * line;
         setMeasuredDimension(widthSize, resultHeight);
     }
 
@@ -215,19 +212,29 @@ public class KFlowLayout extends ViewGroup {
             List<Integer> index = getWaitAllocationIndex(value);
             int min = getMin(value);
             int gab = secondMin - min;
-            if (gab * index.size() < reduce) {
-                for (int i = 0; i < index.size(); i++) {
-                    int p = index.get(i);
-                    value[p] = value[p] + gab;
-                }
-                return getAllocation(value, reduce - gab * index.size());
-            } else {
+            if (gab == 0) {
+                //gab =0 表明这个是这个是平均分配
                 int level = reduce / index.size();
                 for (int i = 0; i < index.size(); i++) {
                     int p = index.get(i);
                     value[p] = value[p] + level;
                 }
-                return getAllocation(value, 0);
+                return value;
+            } else {
+                if (gab * index.size() < reduce) {
+                    for (int i = 0; i < index.size(); i++) {
+                        int p = index.get(i);
+                        value[p] = value[p] + gab;
+                    }
+                    return getAllocation(value, reduce - gab * index.size());
+                } else {
+                    int level = reduce / index.size();
+                    for (int i = 0; i < index.size(); i++) {
+                        int p = index.get(i);
+                        value[p] = value[p] + level;
+                    }
+                    return getAllocation(value, 0);
+                }
             }
         }
     }
@@ -260,12 +267,11 @@ public class KFlowLayout extends ViewGroup {
         int firstMin = Integer.MAX_VALUE;   //第一小的元素  初始值设为int的最大取值
         int secondMin = Integer.MAX_VALUE;   //第二小的元素  初始值设为int的最大取值
         for (int value : arr) {
-            if (value < firstMin) //小于最小的元素 更新1和2
-            {
+            if (value < firstMin) {
+                //小于最小的元素 更新1和2
                 secondMin = firstMin;
                 firstMin = value;
-            } else if (value < secondMin && value != firstMin) //小于倒数二的 更新2
-            {
+            } else if (value < secondMin && value != firstMin) { //小于倒数二的 更新2
                 secondMin = value;
             }
         }
