@@ -5,6 +5,6 @@
 # 使用方式
 ```
 	dependencies {
-	        implementation 'com.github.cugkuan:FlowLayout:1.0.0'
+	        implementation 'com.github.cugkuan:FlowLayout:1.1.0'
 	}
 ```
