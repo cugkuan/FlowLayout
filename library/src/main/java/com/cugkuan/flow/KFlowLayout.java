@@ -12,13 +12,26 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * 流式布局
+ * 请注意，忽略了 元素的 margin 属性
+ * 设置了也不起作用
+ */
 public class KFlowLayout extends ViewGroup {
 
+    /**
+     * 水平方向的距离
+     */
+    private int mHorizontalSpacing = 10;
 
-    private int mHorizalSpaceing = 10;
+    /**
+     * 垂直方向元素的距离
+     */
+    private int mVerticalSpacing = 10;
 
-    private int mVerticalSpaceing = 10;
-
+    /**
+     * 每一行的最大个数
+     */
     private int mLineMax = 3;
 
 
@@ -46,8 +59,8 @@ public class KFlowLayout extends ViewGroup {
             return;
         }
         TypedArray array = context.obtainStyledAttributes(attrs, R.styleable.KFlowLayout);
-        mHorizalSpaceing = array.getDimensionPixelSize(R.styleable.KFlowLayout_kf_horizontalSpacing, 10);
-        mVerticalSpaceing = array.getDimensionPixelOffset(R.styleable.KFlowLayout_kf_verticalSpacing, 10);
+        mHorizontalSpacing = array.getDimensionPixelSize(R.styleable.KFlowLayout_kf_horizontalSpacing, 10);
+        mVerticalSpacing = array.getDimensionPixelOffset(R.styleable.KFlowLayout_kf_verticalSpacing, 10);
         mLineMax = array.getDimensionPixelOffset(R.styleable.KFlowLayout_kf_line_max_num, 3);
         if (mLineMax < 2) {
             mLineMax = 2;
@@ -63,9 +76,12 @@ public class KFlowLayout extends ViewGroup {
                 return;
             }
             for (int i = 0; i < size; i++) {
-                Node node = new Node(mAdapter.getView(getContext(), KFlowLayout.this, i));
-                mNodes.add(node);
-                addView(node.getView());
+                View view = mAdapter.getView(getContext(), KFlowLayout.this, i);
+                if (view.getVisibility() != GONE) {
+                    Node node = new Node(view);
+                    mNodes.add(node);
+                    addView(node.getView());
+                }
             }
             invalidate();
         }
@@ -78,13 +94,22 @@ public class KFlowLayout extends ViewGroup {
 
     public void setAdapter(KFAdapter adapter) {
         mAdapter = adapter;
-        mAdapter.registerDataSetObserver(mDataSetObserver);
-        mAdapter.notifyDataSetChanged();
+        if (mAdapter != null) {
+            mAdapter.registerDataSetObserver(mDataSetObserver);
+            mAdapter.notifyDataSetChanged();
+        } else {
+            invalidate();
+        }
     }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        if (mNodes.isEmpty()) {
+            setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
+            return;
+        }
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int row = 0;
         int line = 0;
@@ -93,47 +118,54 @@ public class KFlowLayout extends ViewGroup {
         /**
          * 第一次确定每个View 的行数和列数
          */
+        int height = 0;
+        List<Node> lineNodes = new ArrayList<>();
         for (int i = 0; i < mNodes.size(); i++) {
             Node node = mNodes.get(i);
             View view = node.getView();
-            usedWidth = usedWidth + view.getMeasuredWidth() + mHorizalSpaceing;
+            usedWidth = usedWidth + view.getMeasuredWidth() + mHorizontalSpacing;
             //该换行了
             if (row > mLineMax || (usedWidth > widthSize && row > 0)) {
                 row = 0;
                 line++;
-                usedWidth = getPaddingLeft() + getPaddingRight() + view.getMeasuredWidth() + mHorizalSpaceing;
+                usedWidth = getPaddingLeft() + getPaddingRight() + view.getMeasuredWidth() + mHorizontalSpacing;
+                //为上一行的元素，进行重新的宽度的分配计算
+                height = height + dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
+                lineNodes.clear();
             }
             node.setLine(line);
             node.setRow(row);
             row++;
-        }
-        /**
-         * 第二次，对每一个元素，需要重新分配宽度
-         */
-        int height = 0;
-        List<Node> temps = new ArrayList<>();
-        int temLine = 0;
-        for (int i = 0; i < mNodes.size(); i++) {
-            Node node = mNodes.get(i);
-            if (node.getLine() != temLine){
-                height = height + dealNodesLine(widthSize, heightMeasureSpec, temps);
-                temps.clear();
-                temLine = node.line;
-            }
-            temps.add(node);
+            lineNodes.add(node);
         }
         /**
          * 别忘了最后一行元素的处理
          */
-        height = height + dealNodesLine(widthSize, heightMeasureSpec, temps);
-        int resultHeight = height + mVerticalSpaceing * (temLine - 1) + getPaddingTop() + getPaddingBottom();
+        height = height + dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
+        int resultHeight = height + mVerticalSpacing * (line - 1) + getPaddingTop() + getPaddingBottom();
         setMeasuredDimension(widthSize, resultHeight);
     }
 
-    //剩余空间分配问题，这个算法是关键，这里暂时使用最简单的方法，剩余的平均分配
-
+    /**
+     * 对一行中的所有元素的宽度进行重新计算和分配
+     * <p>
+     * 例如：有三个元素，其宽度分别为：
+     * {1,4,1},其总的空间是 10;那么重新分配计算完成后的空间分配情况是：
+     * {3,4,3};
+     * 如果是初始空间是{1,4,2};那么分配完成的空间应该是：
+     * {3,4,3}
+     *
+     * @param widthSize
+     * @param heightSpace
+     * @param nodes
+     * @return
+     */
     private int dealNodesLine(int widthSize, int heightSpace, List<Node> nodes) {
-        int usedWidth = widthSize - getPaddingLeft() - getPaddingRight() - (nodes.size() - 1) * mHorizalSpaceing;
+
+        if (nodes == null || nodes.isEmpty()) {
+            return 0;
+        }
+        int usedWidth = widthSize - getPaddingLeft() - getPaddingRight() - (nodes.size() - 1) * mHorizontalSpacing;
         int[] space = new int[nodes.size()];
         for (int i = 0; i < space.length; i++) {
             int vWidth = nodes.get(i).getView().getMeasuredWidth();
@@ -249,12 +281,12 @@ public class KFlowLayout extends ViewGroup {
                 rowHeight = Math.max(rowHeight, view.getMeasuredHeight());
             } else {
                 line = node.getLine();
-                t = t + mVerticalSpaceing + rowHeight;
+                t = t + mVerticalSpacing + rowHeight;
                 l = getPaddingLeft();
                 rowHeight = view.getMeasuredHeight();
                 view.layout(l, t, l + view.getMeasuredWidth(), t + view.getMeasuredHeight());
             }
-            l = l + view.getMeasuredWidth() + mHorizalSpaceing;
+            l = l + view.getMeasuredWidth() + mHorizontalSpacing;
         }
     }
 
@@ -297,20 +329,17 @@ public class KFlowLayout extends ViewGroup {
         }
     }
 
-    public static abstract class KFAdapter<T> {
+    public static abstract class KFAdapter {
 
         private final DataSetObservable mDataSetObservable = new DataSetObservable();
 
         abstract protected View getView(Context context, View parent, int position);
-
-        abstract public T getItem();
 
         abstract public int getCount();
 
         public void notifyDataSetChanged() {
             mDataSetObservable.notifyChanged();
         }
-
         /**
          * Register an observer that is called when changes happen to the data used by this adapter.
          *

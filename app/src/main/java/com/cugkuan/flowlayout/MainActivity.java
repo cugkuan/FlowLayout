@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    class ViewPager  extends KFlowLayout.KFAdapter<String>{
+    class ViewPager  extends KFlowLayout.KFAdapter{
 
 
         private String[] strings = new String[6];
@@ -53,11 +53,6 @@ public class MainActivity extends AppCompatActivity {
             textView.setText(strings[position]);
 
             return textView;
-        }
-
-        @Override
-        public String getItem() {
-            return "你好吗";
         }
 
         @Override
