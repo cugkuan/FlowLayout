@@ -118,7 +118,6 @@ public class KFlowLayout extends ViewGroup {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
         if (mNodes.isEmpty()) {
-            setMeasuredDimension(widthMeasureSpec, heightMeasureSpec);
             return;
         }
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
