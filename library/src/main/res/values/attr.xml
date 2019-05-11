@@ -16,6 +16,13 @@
         <!--是否自动调整其宽度-->
         <attr name="kf_adjust" format="boolean|reference"></attr>
 
+        <!--分割线-->
+        <attr name="divider"></attr>
+
+        <attr name="kf_horizontalDivider" format="reference"></attr>
+
+        <attr name="kf_verticalDivider" format="reference"></attr>
+
 
 
     </declare-styleable>

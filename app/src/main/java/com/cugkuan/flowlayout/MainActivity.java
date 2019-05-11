@@ -16,28 +16,27 @@ import com.cugkuan.flow.KFlowLayout;
 public class MainActivity extends AppCompatActivity {
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        KFlowLayout layout  = findViewById(R.id.flow);
+        KFlowLayout layout = findViewById(R.id.flow);
 
         ViewPager viewPager = new ViewPager();
         layout.setAdapter(viewPager);
 
 
-
     }
 
-    class ViewPager  extends KFlowLayout.KFAdapter{
+    class ViewPager extends KFlowLayout.KFAdapter {
 
 
         private String[] strings = new String[6];
+
         {
             strings[0] = "你好吗";
-            strings[1] = "你好吗";
+            strings[1] = "你好吗,你好吗，好";
             strings[2] = "你好吗";
             strings[3] = "你好吗";
             strings[4] = "你好不好啊，好不好啊好不好啊";
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected View getView(Context context, View parent, int position) {
 
-            TextView textView =  (TextView) LayoutInflater.from(context).inflate(R.layout.textview,null);
+            TextView textView = (TextView) LayoutInflater.from(context).inflate(R.layout.textview, null);
 
 
             textView.setText(strings[position]);

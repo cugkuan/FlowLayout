@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.database.DataSetObservable;
 import android.database.DataSetObserver;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +48,11 @@ public class KFlowLayout extends ViewGroup {
      */
     private boolean mAutoAdjust = true;
 
+    //水平的分割线
+    private Drawable mHorizontalDivider;
+
+    private int mHorizontalDividerWidth = 0;
+
 
     public KFlowLayout(Context context) {
         super(context, null);
@@ -72,6 +79,14 @@ public class KFlowLayout extends ViewGroup {
             mLineMax = 2;
         }
         mAutoAdjust = array.getBoolean(R.styleable.KFlowLayout_kf_adjust, true);
+        mHorizontalDivider = array.getDrawable(R.styleable.KFlowLayout_kf_horizontalDivider);
+        if (mHorizontalDivider != null){
+            mHorizontalDivider.setBounds(0,0, mHorizontalDivider.getIntrinsicWidth(), mHorizontalDivider.getIntrinsicHeight());
+            mHorizontalDividerWidth = mHorizontalDivider.getIntrinsicWidth();
+
+            setWillNotDraw(false);
+        }
+        array.recycle();
     }
 
     private DataSetObserver mDataSetObserver = new DataSetObserver() {
@@ -131,14 +146,30 @@ public class KFlowLayout extends ViewGroup {
             Node node = mNodes.get(i);
             View view = node.getView();
             usedWidth = usedWidth + view.getMeasuredWidth() + mHorizontalSpacing;
+
+            if (mHorizontalDivider != null){
+                usedWidth = usedWidth + mHorizontalDividerWidth + mHorizontalSpacing;
+            }
             //该换行了
             if (row >= mLineMax || (usedWidth > widthSize && row > 0)) {
-                row = 0;
-                line++;
-                usedWidth = getPaddingLeft() + getPaddingRight() + view.getMeasuredWidth() + mHorizontalSpacing;
-                //为上一行的元素，进行重新的宽度的分配计算
-                height = height + dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
-                lineNodes.clear();
+
+                //进行修正
+                int correct = usedWidth - mHorizontalSpacing;
+                if (mHorizontalDivider != null){
+                    correct  = usedWidth- mHorizontalSpacing - mHorizontalDividerWidth;
+                }
+
+                if (correct  > widthSize){
+
+                    row = 0;
+                    line++;
+                    usedWidth = getPaddingLeft() + getPaddingRight() + view.getMeasuredWidth() + mHorizontalSpacing;
+
+                    //为上一行的元素，进行重新的宽度的分配计算
+                    height = height + dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
+                    lineNodes.clear();
+                }
+
             }
             node.setLine(line);
             node.setRow(row);
@@ -178,7 +209,12 @@ public class KFlowLayout extends ViewGroup {
                 height = Math.max(height, node.getView().getMeasuredHeight());
             }
         } else {
-            int usedWidth = widthSize - getPaddingLeft() - getPaddingRight() - (nodes.size() - 1) * mHorizontalSpacing;
+            int usedWidth = widthSize - getPaddingLeft() - getPaddingRight();
+            if (mHorizontalDivider != null){
+                usedWidth = usedWidth - (nodes.size() - 1)*(mHorizontalSpacing+ mHorizontalDivider.getIntrinsicWidth() + mHorizontalSpacing);
+            }else {
+                usedWidth = usedWidth - (nodes.size() - 1) * mHorizontalSpacing;
+            }
             int[] space = new int[nodes.size()];
             for (int i = 0; i < space.length; i++) {
                 int vWidth = nodes.get(i).getView().getMeasuredWidth();
@@ -289,6 +325,8 @@ public class KFlowLayout extends ViewGroup {
     }
 
 
+
+
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         l = getPaddingLeft();
@@ -308,9 +346,36 @@ public class KFlowLayout extends ViewGroup {
                 rowHeight = view.getMeasuredHeight();
                 view.layout(l, t, l + view.getMeasuredWidth(), t + view.getMeasuredHeight());
             }
-            l = l + view.getMeasuredWidth() + mHorizontalSpacing;
+            if (mHorizontalDivider != null){
+               l = l + view.getMeasuredWidth() + mHorizontalSpacing*2 + mHorizontalDivider.getIntrinsicWidth();
+            }else {
+                l = l + view.getMeasuredWidth() + mHorizontalSpacing;
+            }
         }
     }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        //这里主要是绘制分割线
+        super.onDraw(canvas);
+        for (int  i = 0; i < mNodes.size() ;i++){
+            Node node = mNodes.get(i);
+            View view = node.getView();
+            Node next = null;
+            if (i + 1 < mNodes.size()){
+                next = mNodes.get(i+1);
+            }
+            if (next != null && node.getLine() == next.getLine()) {
+                mHorizontalDivider.setBounds(view.getRight() + mHorizontalSpacing,
+                        view.getTop(),
+                        view.getRight() + mHorizontalSpacing + mHorizontalDivider.getIntrinsicWidth(),
+                        view.getBottom());
+                mHorizontalDivider.draw(canvas);
+            }
+        }
+    }
+
+
 
     /**
      * 节点的暂存
