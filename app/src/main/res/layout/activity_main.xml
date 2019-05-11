@@ -13,6 +13,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:kf_horizontalDivider="@drawable/dividerd"
+        app:kf_verticalDivider="@drawable/divier2"
         app:kf_verticalSpacing="12dp"
         app:kf_line_max_num="4"
         app:kf_horizontalSpacing="12dp"
