@@ -4,6 +4,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:orientation="vertical"
+
+    android:paddingLeft="13dp"
+    android:paddingRight="13dp"
     android:layout_height="wrap_content"
 
     tools:context=".MainActivity">
@@ -25,6 +28,8 @@
         app:kf_verticalSpacing="12dp"
         app:kf_line_max_num="4"
         app:kf_horizontalSpacing="12dp"
+        app:kf_last_line_difference="2"
+
         app:kf_adjust="true"
 
         >

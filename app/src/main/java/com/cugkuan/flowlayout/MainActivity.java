@@ -19,9 +19,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-    private String[] a = {"你是是hidjhj","xxxxddag","dagjhuhhdhgah","你海马还记得哈","米好吗"};
+    private String[] b = {"你是是hidjhj","xxxxddag","dagjhuhhdhgah","你海马还记得哈","米好吗"};
 
-    private String[] b = {"你好吗","你码号","我去"};
+    private String[] a = {"深圳CBD中心","CBD蓝山中心","惠州惠港中心"};
 
     ViewPager viewPager;
 

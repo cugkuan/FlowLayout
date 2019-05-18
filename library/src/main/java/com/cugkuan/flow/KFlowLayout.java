@@ -235,7 +235,7 @@ public class KFlowLayout extends ViewGroup {
         }
         int usedWidth = 0;
         int height = 0;
-        int level = widthSize / mDifference;
+        int level = (widthSize - (mDifference - 1) * mHorizontalSpacing)  / mDifference;
 
         //避免如果 levle太小了，引起性能的下降,这段代码可能冗余
         if (level <= DIFFERENCE_MIN_LEVEL) {
@@ -264,8 +264,8 @@ public class KFlowLayout extends ViewGroup {
         for (int i = 0; i < arrayList.size(); i++) {
             space[i] = arrayList.get(i);
         }
-        int[] result = getAllocation(space,
-                widthSize - usedWidth - getPaddingRight() - getPaddingLeft() - mHorizontalSpacing);
+        int reduce  = widthSize - usedWidth - getPaddingLeft() - getPaddingRight();
+        int[] result = getAllocation(space, reduce);
         for (int i = 0; i < nodes.size(); i++) {
             Node node = nodes.get(i);
             View view = node.getView();
