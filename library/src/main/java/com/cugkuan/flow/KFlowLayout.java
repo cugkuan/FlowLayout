@@ -256,6 +256,7 @@ public class KFlowLayout extends ViewGroup {
                 index++;
                 arrayList.add(level);
             } else {
+                usedWidth -= level;
                 break;
             }
         }
