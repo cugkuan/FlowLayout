@@ -235,35 +235,43 @@ public class KFlowLayout extends ViewGroup {
         }
         int usedWidth = 0;
         int height = 0;
-        int level = (widthSize - (mDifference - 1) * mHorizontalSpacing)  / mDifference;
+        int divider = 0;
 
+        if (mHorizontalDivider != null){
+           divider = mHorizontalSpacing + mHorizontalSpacing + mHorizontalDivider.getIntrinsicWidth();
+        }else {
+            divider = mHorizontalSpacing;
+        }
+
+        int level = (widthSize - (mDifference - 1) * divider)  / mDifference;
         //避免如果 levle太小了，引起性能的下降,这段代码可能冗余
         if (level <= DIFFERENCE_MIN_LEVEL) {
             level = DIFFERENCE_MIN_LEVEL;
         }
-
         int index = 0;
         ArrayList<Integer> arrayList = new ArrayList();
         for (Node node : nodes) {
-            usedWidth = usedWidth + node.getView().getMeasuredWidth() + mHorizontalSpacing;
+            usedWidth = usedWidth + node.getView().getMeasuredWidth() + divider;
             height = Math.max(node.getView().getMeasuredHeight(), height);
             arrayList.add(node.view.getMeasuredWidth());
         }
         while (true) {
             usedWidth += level;
             if (usedWidth < widthSize) {
-                usedWidth += mHorizontalSpacing;
+                usedWidth = usedWidth + divider;
                 index++;
                 arrayList.add(level);
             } else {
-                usedWidth -= level;
                 break;
             }
         }
         int[] space = new int[nodes.size() + index];
+        usedWidth = 0;
         for (int i = 0; i < arrayList.size(); i++) {
             space[i] = arrayList.get(i);
+            usedWidth = usedWidth + space[i];
         }
+        usedWidth  = usedWidth + (space.length - 1)* divider;
         int reduce  = widthSize - usedWidth - getPaddingLeft() - getPaddingRight();
         int[] result = getAllocation(space, reduce);
         for (int i = 0; i < nodes.size(); i++) {
