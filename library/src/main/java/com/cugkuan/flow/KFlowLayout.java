@@ -18,8 +18,19 @@ import java.util.List;
  * 流式布局
  * 请注意，忽略了 元素的 margin 属性
  * 设置了也不起作用
+ * @author kuan
  */
 public class KFlowLayout extends ViewGroup {
+
+
+    /**
+     * 默认的差分计数
+     */
+    public static final int DIFFERENCE_SIZE = 4;
+    /**
+     * 差分的最小宽度
+     */
+    public static final int DIFFERENCE_MIN_LEVEL = 10;
 
     /**
      * 水平方向的距离
@@ -51,6 +62,14 @@ public class KFlowLayout extends ViewGroup {
     private Drawable mHorizontalDivider;
     private Drawable mVerticalDivider;
 
+
+    private int mDifference = DIFFERENCE_SIZE;
+
+
+    private boolean  mLastLineOptimize = true;
+
+
+
     public KFlowLayout(Context context) {
         super(context, null);
     }
@@ -75,6 +94,10 @@ public class KFlowLayout extends ViewGroup {
         if (mLineMax < 2) {
             mLineMax = 2;
         }
+        if (mLineMax < DIFFERENCE_SIZE){
+            mDifference = mLineMax;
+        }
+
         mAutoAdjust = array.getBoolean(R.styleable.KFlowLayout_kf_adjust, true);
         mHorizontalDivider = array.getDrawable(R.styleable.KFlowLayout_kf_horizontalDivider);
         if (mHorizontalDivider != null) {
@@ -84,6 +107,11 @@ public class KFlowLayout extends ViewGroup {
         if (mVerticalDivider != null) {
             setWillNotDraw(false);
         }
+        mDifference = array.getInteger(R.styleable.KFlowLayout_kf_last_line_difference,DIFFERENCE_SIZE);
+        if (mDifference > DIFFERENCE_SIZE){
+            mDifference = DIFFERENCE_SIZE;
+        }
+
         array.recycle();
     }
 
@@ -91,6 +119,7 @@ public class KFlowLayout extends ViewGroup {
         @Override
         public void onChanged() {
             removeAllViews();
+            mNodes.clear();
             int size = mAdapter.getCount();
             if (size <= 0) {
                 return;
@@ -114,6 +143,10 @@ public class KFlowLayout extends ViewGroup {
 
     public void setAutoAdjust(boolean autoAdjust) {
         mAutoAdjust = autoAdjust;
+    }
+
+    public void setLastLineOptimize(boolean lastLineOptimize){
+        mLastLineOptimize = lastLineOptimize;
     }
 
     public void setAdapter(KFAdapter adapter) {
@@ -172,12 +205,70 @@ public class KFlowLayout extends ViewGroup {
         /**
          * 别忘了最后一行元素的处理
          */
-        height = height + dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
+        if (mLastLineOptimize) {
+            if (line == 0) {
+                height += dealNodesLine(widthSize, heightMeasureSpec, lineNodes);
+            } else {
+                height += dealNodesLastLine(widthSize, heightMeasureSpec, lineNodes);
+            }
+        }else {
+            height += dealNodesLine(widthSize,heightMeasureSpec,lineNodes);
+        }
         int resultHeight = height + getPaddingTop() + getPaddingBottom()
                 + (mVerticalDivider == null ?
                 mVerticalSpacing * line :
                 (mVerticalSpacing + mVerticalDivider.getIntrinsicHeight()) * 2 * line);
         setMeasuredDimension(widthSize, resultHeight);
+    }
+
+    /**
+     *  最后一行的优化
+     * @param widthSize
+     * @param heightSapce
+     * @param nodes
+     * @return
+     */
+    private int dealNodesLastLine(int widthSize,int heightSapce,List<Node> nodes){
+        if (nodes.size()>= mDifference){
+            return dealNodesLine(widthSize,heightSapce,nodes);
+        }
+        int usedWidth = 0;
+        int height = 0;
+        int level = widthSize/ mDifference;
+
+        //避免如果 levle太小了，引起性能的下降,这段代码可能冗余
+        if (level <= DIFFERENCE_MIN_LEVEL){
+            level = DIFFERENCE_MIN_LEVEL;
+        }
+
+        int index = 0;
+        ArrayList<Integer> arrayList = new ArrayList();
+        for (Node node : nodes){
+            usedWidth = usedWidth + node.getView().getMeasuredWidth() + mHorizontalSpacing;
+            height = Math.max(node.getView().getMeasuredHeight(),height);
+            arrayList.add(node.view.getMeasuredWidth());
+        }
+        while (usedWidth < widthSize){
+            usedWidth = usedWidth + level + mHorizontalSpacing;
+            index ++;
+            arrayList.add(level);
+        }
+        int[] space  = new int[nodes.size() + index];
+        for (int i = 0; i < arrayList.size(); i++){
+            space[i] = arrayList.get(i);
+        }
+        int[] result = getAllocation(space,
+                widthSize - usedWidth  - getPaddingRight() - getPaddingLeft() - mHorizontalSpacing);
+        for (int  i = 0; i < nodes.size() ;i++){
+            Node node = nodes.get(i);
+            View view = node.getView();
+            int widthS = MeasureSpec.makeMeasureSpec(result[i], MeasureSpec.EXACTLY);
+            LayoutParams lp = view.getLayoutParams();
+            view.measure(widthS, getChildMeasureSpec(heightSapce, 0, lp.height));
+        }
+
+        return height;
+
     }
 
     /**

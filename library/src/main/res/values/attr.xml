@@ -6,7 +6,6 @@
         <!--一行的最大个数-->
         <attr name="kf_line_max_num" format="integer|reference">
         </attr>
-
         <!--水平的间距-->
         <attr name="kf_horizontalSpacing" format="dimension|reference"></attr>
 
@@ -18,10 +17,11 @@
 
         <!--分割线-->
         <attr name="divider"></attr>
-
         <attr name="kf_horizontalDivider" format="reference"></attr>
-
         <attr name="kf_verticalDivider" format="reference"></attr>
+
+        <!--最后一行的填充的宽度-->
+        <attr name="kf_last_line_difference" format="reference|integer"></attr>
 
 
 

@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Adapter;
 import android.widget.ArrayAdapter;
+import android.widget.CheckedTextView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -16,6 +17,14 @@ import com.cugkuan.flow.KFlowLayout;
 public class MainActivity extends AppCompatActivity {
 
 
+
+
+    private String[] a = {"你是是hidjhj","xxxxddag","dagjhuhhdhgah","你海马还记得哈","米好吗"};
+
+    private String[] b = {"你好吗","你码号","我去"};
+
+    ViewPager viewPager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -23,8 +32,27 @@ public class MainActivity extends AppCompatActivity {
 
         KFlowLayout layout = findViewById(R.id.flow);
 
-        ViewPager viewPager = new ViewPager();
+         viewPager = new ViewPager();
         layout.setAdapter(viewPager);
+
+
+        findViewById(R.id.text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                CheckedTextView checkedTextView = (CheckedTextView)v;
+
+                if (checkedTextView.isChecked()){
+                    checkedTextView.setChecked(false);
+                    viewPager.setData(a);
+                }else {
+                    checkedTextView.setChecked(true);
+                    viewPager.setData(b);
+                }
+            }
+        });
+
+        viewPager.setData(a);
 
 
     }
@@ -32,15 +60,12 @@ public class MainActivity extends AppCompatActivity {
     class ViewPager extends KFlowLayout.KFAdapter {
 
 
-        private String[] strings = new String[6];
 
-        {
-            strings[0] = "你好吗";
-            strings[1] = "你好吗,你好吗，好";
-            strings[2] = "你好吗";
-            strings[3] = "你好吗";
-            strings[4] = "你好不好啊，好不好啊好不好啊";
-            strings[5] = "你不哦啊吗，巴哈卡机的和交互打工行大动干戈交换机会加大";
+        String[] strings;
+        public void setData(String[] data){
+            strings = data;
+
+            notifyDataSetChanged();
         }
 
         @Override
@@ -56,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public int getCount() {
-            return strings.length;
+            return strings ==null ? 0:strings.length;
         }
     }
 

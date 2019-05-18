@@ -1,11 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:orientation="vertical"
     android:layout_height="wrap_content"
 
     tools:context=".MainActivity">
+
+
+    <CheckedTextView
+        android:id="@+id/text"
+        android:text="测试更换1"
+        android:layout_width="100dp"
+        android:layout_height="40dp" />
 
 
     <com.cugkuan.flow.KFlowLayout
@@ -22,4 +30,4 @@
         >
 
     </com.cugkuan.flow.KFlowLayout>
-</FrameLayout>
+</LinearLayout>
